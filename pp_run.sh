@@ -58,7 +58,7 @@ cd ./${SERVERPATH}
 make clean
 mirage configure --interface 0 -t ${PLATFORM}
 make
-cd ../../
+cd ../
 
 sed -e s@KERNELPATH@${BASEDIR}/${SERVERBIN}@ ./template/${SERVERXML} > ./${SERVERXML}
 scp ./${SERVERPATH}/${SERVERBIN} ${USER}@${SERVERADDR}:${BASEDIR}/
@@ -83,7 +83,7 @@ cd ${CLIENTPATH}
 make clean
 mirage configure --interface 0 -t ${PLATFORM}
 make
-cd ../../
+cd ../
 scp ./${CLIENTPATH}/${CLIENTBIN} ${USER}@${CLIENTADDR}:${BASEDIR}/
 sleep 3
 
