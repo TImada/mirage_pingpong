@@ -19,7 +19,7 @@
 
 open Lwt.Infix
 
-module Main (S: V1_LWT.STACKV4) = struct
+module Main (S: Tcpip.Stack.V4) = struct
 
    let return_ip = Ipaddr.V4.of_string_exn "192.168.122.101"
    let port = 7001
@@ -63,7 +63,7 @@ module Main (S: V1_LWT.STACKV4) = struct
     Logs.info (fun f -> f "IP address: %s" (String.concat "," ips));
     Logs.info (fun f -> f "Port number: %d" port);
 
-    S.listen_tcpv4 s ~port:port (fun flow ->
+    S.TCPV4.listen (S.tcpv4 s) ~port:port (fun flow ->
       receiver flow
     );
     S.listen s

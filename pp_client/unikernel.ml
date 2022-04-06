@@ -25,7 +25,7 @@ type stats = {
    mutable last_time: int64;
 }
 
-module Main (S: V1_LWT.STACKV4) (Time : V1_LWT.TIME) = struct
+module Main (S: Tcpip.Stack.V4) (Time : Mirage_time.S) (Mclock : Mirage_clock.MCLOCK) = struct
 
   let server_ip = Ipaddr.V4.of_string_exn "192.168.122.100"
   let port = 7001
@@ -58,7 +58,7 @@ module Main (S: V1_LWT.STACKV4) (Time : V1_LWT.TIME) = struct
         Lwt.return_unit
       | `Data data ->
         let ts_now = Mclock.elapsed_ns clock in
-        let l = Cstruct.len data in
+        let l = Cstruct.length data in
         st.last_time <- ts_now;
         st.bytes <- (Int64.add st.bytes (Int64.of_int l));
         print_data st
@@ -98,11 +98,10 @@ module Main (S: V1_LWT.STACKV4) (Time : V1_LWT.TIME) = struct
     S.TCPV4.close flow >>= fun () ->
     Lwt.return_unit
 
-  let start s _time =
+  let start s _time _clock =
     Time.sleep_ns (Duration.of_sec 1) >>= fun () -> (* Give server 1.0 s to call listen *)
-    Mclock.connect () >>= fun clock ->
     Lwt.async (fun () -> S.listen s);
-    pingpongclient s server_ip port clock
+    pingpongclient s server_ip port _clock
 
 end
 
