@@ -25,9 +25,9 @@ type stats = {
    mutable last_time: int64;
 }
 
-module Main (S: Tcpip.Stack.V4) (Time : Mirage_time.S) (Mclock : Mirage_clock.MCLOCK) = struct
+module Main (S: Tcpip.Stack.V4V6) (Time : Mirage_time.S) (Mclock : Mirage_clock.MCLOCK) = struct
 
-  let server_ip = Ipaddr.V4.of_string_exn "192.168.122.100"
+  let server_ip = Ipaddr.of_string_exn "192.168.122.100"
   let port = 7001
 
   let msg = "0"
@@ -40,19 +40,19 @@ module Main (S: Tcpip.Stack.V4) (Time : Mirage_time.S) (Mclock : Mirage_clock.MC
     Lwt.return_unit
 
   let err_connect ip port () =
-    let ip  = Ipaddr.V4.to_string ip in
+    let ip  = Ipaddr.to_string ip in
     Logs.info (fun f -> f "Unable to connect to %s:%d" ip port);
     Lwt.return_unit
 
   let write_and_check flow buf =
-    S.TCPV4.write flow buf >|= Rresult.R.get_ok
+    S.TCP.write flow buf >|= Rresult.R.get_ok
 
   let tcp_connect t (ip, port) =
-    S.TCPV4.create_connection t (ip, port) >|= Rresult.R.get_ok
+    S.TCP.create_connection t (ip, port) >|= Rresult.R.get_ok
 
   let read_response flow clock st =
     let read_h flow clock st =
-      S.TCPV4.read flow >|= Rresult.R.get_ok >>= function
+      S.TCP.read flow >|= Rresult.R.get_ok >>= function
       | `Eof ->
         Logs.info (fun f -> f  "pingpong client: unexpectedly closed connection.");
         Lwt.return_unit
@@ -69,7 +69,7 @@ module Main (S: Tcpip.Stack.V4) (Time : Mirage_time.S) (Mclock : Mirage_clock.MC
     (* Setting up a buffer and a timer *)
     let a = Cstruct.sub (Io_page.(to_cstruct (get 1))) 0 mlen in
     Cstruct.blit_from_string msg 0 a 0 mlen;
-    Logs.info (fun f -> f  "Trying to connect to a server at %s:%d, buffer size = %d" (Ipaddr.V4.to_string server_ip) port mlen);
+    Logs.info (fun f -> f  "Trying to connect to a server at %s:%d, buffer size = %d" (Ipaddr.to_string server_ip) port mlen);
 
     let rec loop n flow clock buf =
       match n with
@@ -88,14 +88,14 @@ module Main (S: Tcpip.Stack.V4) (Time : Mirage_time.S) (Mclock : Mirage_clock.MC
 
     (* Having a connection *)
     Logs.info (fun f -> f  "pingpong client: Connecting.");
-    tcp_connect (S.tcpv4 s) (dest_ip, dport) >>= fun flow ->
+    tcp_connect (S.tcp s) (dest_ip, dport) >>= fun flow ->
 
     (* Latency testing *)
     loop 1000 flow clock a >>= fun () ->
 
     (* Connection closing *)
     Logs.info (fun f -> f  "pingpong client: Closing.");
-    S.TCPV4.close flow >>= fun () ->
+    S.TCP.close flow >>= fun () ->
     Lwt.return_unit
 
   let start s _time _clock =

@@ -19,9 +19,9 @@
 
 open Lwt.Infix
 
-module Main (S: Tcpip.Stack.V4) = struct
+module Main (S: Tcpip.Stack.V4V6) = struct
 
-   let return_ip = Ipaddr.V4.of_string_exn "192.168.122.101"
+   let return_ip = Ipaddr.of_string_exn "192.168.122.101"
    let port = 7001
 
    let msg = "0"
@@ -29,7 +29,7 @@ module Main (S: Tcpip.Stack.V4) = struct
    let a = Cstruct.sub (Io_page.(to_cstruct (get 1))) 0 mlen
 
    let err_connect ip port () =
-     let ip  = Ipaddr.V4.to_string ip in
+     let ip  = Ipaddr.to_string ip in
      Logs.info (fun f -> f "Unable to connect to %s:%d" ip port);
      Lwt.return_unit
 
@@ -39,11 +39,11 @@ module Main (S: Tcpip.Stack.V4) = struct
 
    let write_and_check flow buf =
      (*Logs.info (fun f -> f "Writing.");*)
-     S.TCPV4.write flow buf >|= Rresult.R.get_ok
+     S.TCP.write flow buf >|= Rresult.R.get_ok
 
    let receiver flow =
      let rec pingpong_h flow =
-       S.TCPV4.read flow >|= Rresult.R.get_ok >>= function
+       S.TCP.read flow >|= Rresult.R.get_ok >>= function
        | `Eof ->
          Logs.info (fun f -> f  "pingpong server: connection closed.");
          Lwt.return_unit
@@ -58,12 +58,12 @@ module Main (S: Tcpip.Stack.V4) = struct
      pingpong_h flow
 
   let start s =
-    let ips = List.map Ipaddr.V4.to_string (S.IPV4.get_ip (S.ipv4 s)) in
+    let ips = List.map Ipaddr.to_string (S.IP.get_ip (S.ip s)) in
     Logs.info (fun f -> f "pingpong server process started:");
     Logs.info (fun f -> f "IP address: %s" (String.concat "," ips));
     Logs.info (fun f -> f "Port number: %d" port);
 
-    S.TCPV4.listen (S.tcpv4 s) ~port:port (fun flow ->
+    S.TCP.listen (S.tcp s) ~port:port (fun flow ->
       receiver flow
     );
     S.listen s

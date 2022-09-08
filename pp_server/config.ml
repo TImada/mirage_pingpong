@@ -19,20 +19,15 @@
 
 open Mirage
 
-let server_ipconfig : ipv4_config =
-  let nw = Ipaddr.V4.Prefix.of_string_exn "192.168.122.100/24" in
-  let gw = Some (Ipaddr.V4.of_string_exn "192.168.122.1") in
-  { network = nw; gateway = gw }
-
-let sv4 =
-  generic_stackv4 ~config:server_ipconfig default_network
+let sv4v6 =
+  generic_stackv4v6 default_network
 
 let packages = [ package "rresult"; package "io-page"; package "duration" ]
 
-let main = main ~packages "Unikernel.Main" (stackv4 @-> job)
+let main = main ~packages "Unikernel.Main" (stackv4v6 @-> job)
 
 let () =
   register "pp_server" [
-    main $ sv4
+    main $ sv4v6
   ]
 

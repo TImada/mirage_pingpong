@@ -10,8 +10,17 @@ Libvirt with virsh(https://libvirt.org/) and jq (https://stedolan.github.io/jq/)
 
 ## Usage
 ### Usual
-1. Compile a server side program in `pp_server` and a client side program in `pp_client`.
-2. Launch the server side at first, then the client side.
+1. Edit the following variable in `unikernel.ml` of `pp_client`.
+    - `server_ip` (server side IP address)
+2.  Configure your target programs. You must assign an IP address for each side in this step.
+```
+(client side using hvt)
+$ mirage configure --ipv4=192.168.122.101/24 -t hvt
+(server side using hvt)
+$ mirage configure --ipv4=192.168.122.100/24 -t hvt
+```
+3. Compile your target programs.
+4. Launch the server side at first, then the client side.
 
 ### Usual run with a JSON output file
 1. Modify parameters in `pp_run.sh` so that it can be used on your environment.  

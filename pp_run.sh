@@ -17,8 +17,10 @@
 # Parameters (can be modified)
 GUEST="Mirage" # used for a JSON output file
 OCAMLVER="4.03.0+flambda" # used for a JSON output file
-CLIENTADDR="localhost" # a client side Libvirt IP where the iperf client program runs
-SERVERADDR="localhost" # a server side Libvirt IP where the iperf server program runs
+CLIENTADDR="localhost" # client side Libvirt IP where the pingpong client program runs
+SERVERADDR="localhost" # server side Libvirt IP where the pingpong server program runs
+PP_CLIENTADDR="192.168.122.101/24" # pp_client IP address with its network mask
+PP_SERVERADDR="192.168.122.100/24" # pp_server IP address with its network mask
 USER="root" # a user name to execute programs
 
 # Parameters (should not be modified)
@@ -56,7 +58,7 @@ eval `opam config env`
 # Build and dispatch a server application
 cd ./${SERVERPATH}
 make clean
-mirage configure --interface 0 -t ${PLATFORM}
+mirage configure --ipv4=${PP_SERVERADDR} -t ${PLATFORM}
 make
 cd ../
 
@@ -81,7 +83,7 @@ sed -e s@KERNELPATH@${BASEDIR}/${CLIENTBIN}@ ./template/${CLIENTXML} > ./${CLIEN
 
 cd ${CLIENTPATH}
 make clean
-mirage configure --interface 0 -t ${PLATFORM}
+mirage configure --ipv4=${PP_SERVERADDR} -t ${PLATFORM}
 make
 cd ../
 scp ./${CLIENTPATH}/${CLIENTBIN} ${USER}@${CLIENTADDR}:${BASEDIR}/
